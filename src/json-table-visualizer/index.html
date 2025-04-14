@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<h1 style="text-align: center;">JSON Visualizer</h1>
+
+<textarea id="json-input" placeholder="Insert JSON table here" style="width: 100%; height: 25vh; margin-bottom: 20px;"></textarea>
+<button onclick="saveAndRender()" style="display: block; margin: 0 auto;">Display</button>
+
+<div id="content"></div>
+
+<template id="table-template">
+    <h2></h2>
+    <table class="tftable">
+        <thead>
+            <tr class="column-numbers"></tr>
+            <tr class="column-names"></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</template>
+
+<script>
+    function saveAndRender() {
+        const input = document.getElementById('json-input').value;
+        try {
+            const data = JSON.parse(input);
+            localStorage.setItem('jsonData', input);
+            renderTables(data);
+        } catch (error) {
+            alert('Error: Invalid JSON format. Please check your input.');
+            console.error('Invalid JSON:', error);
+        }
+    }
+
+    function renderTables(data) {
+        const content = document.getElementById('content');
+        content.innerHTML = '';  
+        const template = document.getElementById('table-template').content;
+
+        data.forEach(table => {
+            const clone = template.cloneNode(true);
+            clone.querySelector('h2').textContent = table.TableName;
+
+            const columnNumbers = clone.querySelector('.column-numbers');
+            columnNumbers.innerHTML = table.Columns.map((_, index) => `<th>${index + 1}</th>`).join('');
+
+            const columnNames = clone.querySelector('.column-names');
+            columnNames.innerHTML = table.Columns.map(col => `<th>${col.ColumnName}</th>`).join('');
+
+            const tbody = clone.querySelector('tbody');
+            tbody.innerHTML = table.Rows.map(row => 
+                `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`
+            ).join('');
+
+            content.appendChild(clone);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedData = localStorage.getItem('jsonData');
+        if (savedData) {
+            document.getElementById('json-input').value = savedData;
+            try {
+                const data = JSON.parse(savedData);
+                renderTables(data);
+            } catch (error) {
+                console.error('Invalid JSON in Local Storage:', error);
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
